@@ -12,6 +12,7 @@ sklearn = "*"
 tensorflow = "*"
 tensorflow-gpu = "*"
 opencv-python = "*"
+deep-gesture = {editable = true, path = "."}
 
 [dev-packages]
 jupyter = "*"

@@ -1,13 +1,13 @@
 """
-deep-gesture.camera
+deep_gesture.camera
 
 @author: phdenzel
 """
 import numpy as np
-from itertools import zip_longest
-from functools import wraps
 import cv2
 from matplotlib import pyplot as plt
+# from itertools import zip_longest
+# from functools import wraps
 
 
 class CVFeed(object):
@@ -274,7 +274,7 @@ class CVFeed(object):
 
 
 if __name__ == "__main__":
-    from holistic import HolisticMP
+    from deep_gesture.holistic import HolisticMP
     holistic = HolisticMP()
     cvstream = CVFeed(device=0)
     cvstream.register_mod(holistic.detection, feed_passthru=True)

@@ -1,10 +1,9 @@
 """
-deep-gesture.holistic
+deep_gesture.holistic
 
 @author: phdenzel
 """
 import numpy as np
-import cv2
 import mediapipe as mp
 
 
@@ -144,7 +143,7 @@ class HolisticMP(object):
 
 if __name__ == "__main__":
     from matplotlib import pyplot as plt
-    from camera import CVFeed
+    from deep_gesture.camera import CVFeed
     holistic = HolisticMP()
     cvstream = CVFeed(device=0)
 
