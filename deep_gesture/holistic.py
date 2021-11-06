@@ -3,8 +3,10 @@ deep_gesture.holistic
 
 @author: phdenzel
 """
+import os
 import numpy as np
 import mediapipe as mp
+import deep_gesture as dg
 
 
 class HolisticMP(object):
@@ -41,12 +43,13 @@ class HolisticMP(object):
         self.model = self.holistic.Holistic(**kwargs)
         self.results = None
 
-    def detection(self, image):
+    def detection(self, image, *args):
         """
         Run the model on an image
 
         Args:
             image <np.ndarray> - RGB image
+            args <*tuple> - dummy arguments for compatibility
 
         Return:
             results <mediapipe.python.solution_base.SolutionOutputs>
@@ -57,7 +60,7 @@ class HolisticMP(object):
         self.results = results
         return results
 
-    def draw(self, image, *args, results=None, custom_style={}):
+    def draw(self, image, *args, parts=(), results=None, custom_style={}):
         """
         Draw the detection results on the image
 
@@ -68,29 +71,29 @@ class HolisticMP(object):
         Kwargs:    
             results <mediapipe.python.solution_base.SolutionOutputs>
         """
-        if not args:
-            args = 'face', 'pose', 'left_hand', 'right_hand'
+        if not parts:
+            parts = 'face', 'pose', 'left_hand', 'right_hand'
         if results is None:
             results = self.results
-        if 'face' in args:
+        if 'face' in parts:
             self.drawing.draw_landmarks(
                 image, results.face_landmarks,
                 self.holistic.FACEMESH_TESSELATION, # self.holistic.FACEMESH_CONTOURS,
                 landmark_drawing_spec=self.holistic_styles['face_landmarks'],
                 connection_drawing_spec=self.holistic_styles['face_connection'])
-        if 'pose' in args:
+        if 'pose' in parts:
             self.drawing.draw_landmarks(
                 image, results.pose_landmarks,
                 self.holistic.POSE_CONNECTIONS,
                 landmark_drawing_spec=self.holistic_styles['pose_landmarks'],
                 connection_drawing_spec=self.holistic_styles['pose_connection'])
-        if 'left_hand' in args or 'lh' in args:
+        if 'left_hand' in parts or 'lh' in parts:
             self.drawing.draw_landmarks(
                 image, results.left_hand_landmarks,
                 self.holistic.HAND_CONNECTIONS,
                 landmark_drawing_spec=self.holistic_styles['left_hand_landmarks'],
                 connection_drawing_spec=self.holistic_styles['left_hand_connection'])
-        if 'right_hand' in args or 'rh' in args:
+        if 'right_hand' in parts or 'rh' in parts:
             self.drawing.draw_landmarks(
                 image, results.right_hand_landmarks,
                 self.holistic.HAND_CONNECTIONS,
@@ -140,6 +143,42 @@ class HolisticMP(object):
         return np.concatenate([face_landmarks, pose_landmarks,
                                left_hand_landmarks, right_hand_landmarks])
 
+    def save_landmarks(self, *args, filename=None, save_dir=None, verbose=True):
+        """
+        Save landmarks as flattened numpy array; 
+        missing landmarks are substituted with zeros
+
+        Args:
+            args <*tuple> - optional positional arguments;
+                            (image, prefix, name_id, part_no, etc.)
+                            see dg.utils.generate_filename
+
+        Kwargs:
+            filename <str> - name of the file
+            save_dir <str> - directory in which the data is saved;
+                             default: ~/.deep_gesture/tmp/
+            verbose <bool> - print information to stdout
+
+        Return:
+            fpath <str> - file path where the file was saved
+        """
+        if args:
+            args = args[1:]
+        else:
+            args = ('landmarks',)
+        fname = dg.utils.generate_filename(*args, extension='npy') \
+            if filename is None else filename
+        save_dir = dg.TMP_DIR if save_dir is None else save_dir
+        dg.utils.mkdir_p(save_dir)
+        fpath = os.path.join(save_dir, fname)
+        if os.path.exists(fpath):
+            print('File already exists... rerolling filename!')
+            self.save_landmarks(*args, save_dir=save_dir, verbose=verbose)
+        np.save(fpath, self.landmarks)
+        if verbose:
+            print(fpath)
+        return fpath
+
 
 if __name__ == "__main__":
     from matplotlib import pyplot as plt
@@ -148,7 +187,8 @@ if __name__ == "__main__":
     cvstream = CVFeed(device=0)
 
     cvstream.register_mod(holistic.detection, feed_passthru=True)
-    cvstream.register_mod(holistic.draw, feed_passthru=True, args=('face', 'pose', 'left_hand'))
+    cvstream.register_mod(holistic.draw, feed_passthru=True,
+                          parts=('face', 'pose', 'left_hand'))
     image = cvstream.single_capture()
 
     plt.imshow(image)

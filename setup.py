@@ -53,10 +53,10 @@ setup(
     packages=find_packages(where='deep_gesture'),
     py_modules=['deep_gesture'],
     python_requires=">=3.6",
-    # entry_points={
-    #     'console_scripts': [
-    #         'fabular = fabular.__main__:main',
-    #     ],
-    # },
+    entry_points={
+        'console_scripts': [
+            'deep_gesture = deep_gesture.__main__:main',
+        ],
+    },
 
 )
