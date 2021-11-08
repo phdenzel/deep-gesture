@@ -71,7 +71,7 @@ def main():
         from test import main
     # run in train mode
     elif args.train_mode:
-        from deep_gesture.record import train as main
+        from deep_gesture.record import collect_training_data as main
     # run in file mode
     elif args.video_file:
         from deep_gesture.process import video as main

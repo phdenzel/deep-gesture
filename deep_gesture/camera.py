@@ -54,6 +54,7 @@ class CVFeed(object):
             del self.display
         self.capture.release()
         cv2.destroyAllWindows()
+        # TODO: clean TMP_DIR
 
     def init_display(self, display_handler=None):
         """
@@ -372,7 +373,7 @@ class CVFeed(object):
             self.fig.canvas.draw()
             plt.pause(0.05)
 
-    def write_frame(self, image, *args, filename=None, save_dir=None, verbose=True):
+    def write_frame(self, *args, filename=None, save_dir=None, verbose=True):
         """
         Write current feed frame to disk
 
@@ -390,7 +391,7 @@ class CVFeed(object):
             image, args = args[0], args[1:]
         else:
             image, args = self.image, ()
-        fname = dg.utils.generate_filename(*args, extension='png') \
+        fname = dg.utils.generate_filename(*args, extension='jpg') \
             if filename is None else filename
         save_dir = dg.TMP_DIR if save_dir is None else save_dir
         dg.utils.mkdir_p(save_dir)
@@ -536,14 +537,14 @@ class CVFeed(object):
 if __name__ == "__main__":
     from deep_gesture.holistic import HolisticMP
     holistic = HolisticMP()
-    cvstream = CVFeed(device=0)
+    cvstream = CVFeed(device=0, display_handler='cv')
     cvstream.register_mod(holistic.detection, feed_passthru=True)
     cvstream.register_mod(holistic.draw, feed_passthru=True,
                           parts=('face', 'pose', 'right_hand'))
     cvstream.register_mod(cvstream.flip_feed, feed_passthru=False)
     cvstream.register_mod(cvstream.update_display, feed_passthru=False)
-    cvstream.register_mod(cvstream.pause, feed_passthru=False,
-                          kwargs=dict(pause=5, static=False))
-    cvstream.start(display_handler='cv')
+    # cvstream.register_mod(cvstream.pause, feed_passthru=False,
+    #                       kwargs=dict(pause=5, static=False))
+    cvstream.start()
     cvstream.close()
     

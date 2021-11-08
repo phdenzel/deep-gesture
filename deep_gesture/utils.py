@@ -4,6 +4,8 @@ deep_gesture.utils
 @author: phdenzel
 """
 import os
+from io import BytesIO
+import tarfile
 from datetime import datetime
 import numpy as np
 import deep_gesture as dg
@@ -68,34 +70,126 @@ def clean_dir(*args, tmp_dir=None):
     for f in filepaths:
         os.remove(f)
 
+def compress_data(files, filename=None, delete=False, verbose=False):
+    """
+    """
+    if filename is None or not filename.endswith('.tar.gz'):
+        targz = "{}.tar.gz".format(os.path.commonprefix(trgtpaths))
+    else:
+        targz = filename
+    if verbose:
+        print(targz)
+    with tarfile.open(targz, "w:gz") as tf:
+        for f in files:
+            tf.add(f, arcname=os.path.basename(f))
+    if delete:
+        for f in files:
+            os.remove(f)
 
-def archive_data(*args, tmp_dir=None, dta_dir=None):
+def extract_tar(tar_archive, verbose=False):
+    """
+    """
+    if not tarfile.is_tarfile(tar_archive):
+        return
+    with tarfile.open(tar_archive) as tf:
+        path = os.path.dirname(tar_archive)
+        tf.extractall(path)
+        
+
+def archive_data(*args, tmp_dir=None, dta_dir=None, file_type=None,
+                 compress=True, verbose=False):
     """
     Archive sequence files by moving them from a source to a target directory
 
     Kwargs:
         tmp_dir <str> - path to the tmp directory; 
                         default: ~/.deep_gesture/tmp/
+        dta_dir <str> - path to the data archive directory
+                        default: ~/.deep_gesture/data/
+        file_type <str> - file type (extension) targeted
     """
     tmp_dir = dg.TMP_DIR if tmp_dir is None else tmp_dir
     dta_dir = dg.DATA_DIR if dta_dir is None else dta_dir
+    file_type = "" if file_type is None else file_type
     dg.utils.mkdir_p(tmp_dir)
     dg.utils.mkdir_p(dta_dir)
-    filenames = os.listdir(tmp_dir)
+    filenames = [f for f in os.listdir(tmp_dir) if f.endswith(file_type)]
     filepaths = [os.path.join(tmp_dir, f) for f in filenames]
     trgtpaths = [os.path.join(dta_dir, f) for f in filenames]
+    
     for src, dest in zip(filepaths, trgtpaths):
         os.rename(src, dest)
 
+    if compress:
+        targz = "{}.tar.gz".format(os.path.commonprefix(trgtpaths))
+        compress_data(trgtpaths, filename=targz, delete=True, verbose=verbose)
+        # extract_tar(targz)
 
-def load_data(*args, data_dir=None):
+
+def load_data(dta_dir=None, extract_from_tar=True, data_file_extension='.npy',
+              grouping=('_', -1), verbose=False):
     """
-    TODO
+    Extract all data from the data directory (either from tar files or
+    directly from .npy files); labels are extracted from the filenames
+    (as 'label_date_ID_frame.npy')
 
     Kwargs:
-        data_dir <str> - directory containing the data
+        dta_dir <str> - directory to the data files
+        extract_from_tar <bool> - extract data directly from tarballs
+        data_file_extension <str> - data file selection by extension
+        grouping <str, int> - grouping instructions: split character and index
+                              up to which the filenames are grouped
+                              examples: no grouping ('.', -1); default ('_', -1)
+
+    Return:
+        features <list> - numpy data arrays (ML features)
+        labels <list> - categorical data strings (ML labels)
     """
-    data_dir = dg.DATA_DIR if data_dir is None else data_dir
-    files = os.listdir(data_dir)
-    print(files)
+    features = []
+    labels = []
+    if extract_from_tar:
+        tarfiles = [os.path.join(dta_dir, f) for f in os.listdir(dta_dir)
+                    if f.endswith('.tar.gz')]
+        for tf in tarfiles:
+            with tarfile.open(tf, "r:gz") as tar:
+                tar_data = []
+                files = [f for f in tar.getnames() if f.endswith(data_file_extension)]
+                for f in files:
+                    ramfile = BytesIO()
+                    ramfile.write(tar.extractfile(f).read())
+                    ramfile.seek(0)
+                    arr = np.load(ramfile)
+                    ramfile.close()
+                    tar_data.append(arr)
+                gesture = os.path.basename(tf).split("_")[0]
+                labels.append(gesture)
+                features.append(tar_data)
+                if verbose:
+                    g = "_".join(os.path.basename(tf).split("_")[:3])
+                    print(f"Extracting data: {g} - {len(tar_data)} frames")
+    else:
+        files = [os.path.join(dta_dir, f) for f in os.listdir(dta_dir)
+                 if f.endswith(data_file_extension)]
+        file_groups = {}
+        for f in files:
+            key = grouping[0].join(f.split(grouping[0])[:grouping[1]])
+            group = file_groups.get(key, [])
+            group.append(f)
+            file_groups[key] = group
+        for g in file_groups:
+            group_data = []
+            for f in file_groups[g]:
+                arr = np.load(f)
+                group_data.append(arr)
+            gesture = os.path.basename(g).split("_")[0]
+            features.append(group_data)
+            labels.append(gesture)
+            if verbose:
+                g = os.path.basename(g)
+                print(f"Extracting data: {g} - {len(group_data)} frames")
+    return np.array(features), np.array(labels)
     
+
+if __name__ == "__main__":
+    features, labels = load_data(dg.DATA_DIR, extract_from_tar=False, verbose=True)
+    print(features.shape, labels.shape)

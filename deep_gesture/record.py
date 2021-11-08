@@ -7,6 +7,8 @@ import os
 import cv2
 import deep_gesture as dg
 
+__all__ = ['collect_training_data']
+
 
 def training_sequences(gestures=[], sequences=1, length=None):
     """
@@ -29,6 +31,7 @@ q
         length = dg.sequence_length
     return [gestures, range(sequences), range(length)]
 
+
 def sequence_str(*args):
     """
     Sequence string to be displayed on the video feed
@@ -40,7 +43,7 @@ def sequence_str(*args):
     return msg
 
 
-def train():
+def collect_training_data():
     """
     Starts training procedure and records data
     """
@@ -58,15 +61,14 @@ def train():
                           kwargs={'text': sequence_str, 'position': (0.1, 0.1)})
     cvstream.register_mod(cvstream.pause, feed_passthru=False,
                           kwargs={'pause': 3})
-    # cvstream.register_mod(cvstream.write_frame, feed_passthru=False)
     cvstream.register_mod(holistic.save_landmarks, feed_passthru=True,
                           kwargs={'save_dir': dg.TMP_DIR})
+    cvstream.register_mod(cvstream.write_frame, feed_passthru=True)
     cvstream.register_mod(cvstream.await_response, feed_passthru=False)
     cvstream.register_mod(cvstream.key_action, feed_passthru=True,
                           kwargs={'key_action_map': {'q': cvstream.close,
                                                      'd': dg.utils.clean_dir,
                                                      '*': dg.utils.archive_data}})
 
-    cvstream.start_iter(indices=training_sequences(gestures, N_sequences, length),
-                        display_handler='cv')
+    cvstream.start_iter(indices=training_sequences(gestures, N_sequences, length))
     cvstream.close()

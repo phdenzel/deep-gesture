@@ -30,16 +30,14 @@ import deep_gesture.utils
 HOME_DIR = os.path.expanduser("~")
 DOT_DIR = os.path.join(HOME_DIR, ".deep_gesture")
 DATA_DIR = os.path.join(DOT_DIR, "data")
+LOG_DIR = os.path.join(DOT_DIR, "log")
 TMP_DIR = os.path.join(DOT_DIR, "tmp")
 
 # Settings
 device_id = 0
 
 # Training settings
-gestures = ['swipe_left', 'swipe_right',
-            'scroll_down', 'scroll_up',
-            'play', 'stop',
-            'zoom_in', 'zoom_out']
+gestures = ['hello', 'good', 'bad', 'ok']
 N_training_sequences = 3
 sequence_length = 30
 
