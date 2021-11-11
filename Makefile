@@ -1,4 +1,4 @@
-MODULE := fabular
+MODULE := deep_gesture
 
 pkg: readme
 	@pipenv run python setup.py sdist bdist_wheel
