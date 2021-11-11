@@ -44,6 +44,14 @@ For more information type
 
     [pipenv run] deep_gesture -h
 
+First time `deep_gesture` is run, it creates a directory in your home
+folder `~/.deep_gesture`. It will save the recorded data in
+`~/.deep_gesture/data` and TF models in `~/.deep_gesture/models`.  For
+proper training, it is recommended to record at least 20 sequences per
+gesture. Model training takes depending on the hardware 15-30 minutes.
+If some problem occurs, it might be necessary to delete these
+directories, and start over.
+
 Run `deep_gesture` in collection mode (use webcam for data collection):
 
     [pipenv run] deep_gesture --collect --device 0 --gestures hello --sequences 20 --length 30
