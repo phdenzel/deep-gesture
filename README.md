@@ -52,7 +52,7 @@ Run `deep_gesture` to train a model on collected data:
 
     [pipenv run] deep_gesture --train --optimizer Adam --lr 0.0001 --epochs 1000 --batch-size 16
 
-Run deep<sub>gesture</sub> in streaming mode (use webcam for real-time gesture recognition):
+Run `deep_gesture` in streaming mode (use webcam for real-time gesture recognition):
 
     [pipenv run] deep_gesture --device 0
 
