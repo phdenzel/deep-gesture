@@ -559,13 +559,13 @@ class CVFeed(object):
             last_frame = self.iter_last
         if idx_frame == last_frame:
             signal = self.grab_feed()
-            self.flip_feed()        
+            self.flip_feed()
             self.text_to_image(self.image, text="Type 'd' to skip",
-                               position=(0.25, 0.3))
+                               position=(0.3, 0.25))
             self.text_to_image(self.image, text="Type 'q' to quit",
-                               position=(0.25, 0.4))
+                               position=(0.4, 0.25))
             self.text_to_image(self.image, text="Type any other key to save",
-                               position=(0.25, 0.5))
+                               position=(0.5, 0.25))
             key_cache = self.key*1
             self.update_display()
             self.key = key_cache

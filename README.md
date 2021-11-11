@@ -1,26 +1,36 @@
 
 
-# deep<sub>gesture</sub>
+# deep-gesture
 
-A LSTM gesture recognition neural net which can be trained to
+An LSTM gesture-recognition neural net which can be trained to
 categorize any number of given gestures.
 
 Key features:
 
 -   easy to train
--   uses MediaPipe to generate a Holistic model
--   uses a custom TensorFlow LSTM neural net
+-   uses MediaPipe to generate a Holistic model for compact data collection
+-   a custom TensorFlow LSTM neural net
+
+![img](./imgs/example_ok.jpg)
+
+![img](./imgs/example_bad.jpg)
 
 
 ## Requirements
 
--   `python3`
--   `pipenv` (for dev features)
+-   numpy
+-   scipy
+-   matplotlib
+-   opencv-python
+-   mediapipe
+-   sklearn
+-   tensorflow
+-   tensorflow-gpu
 
 
 ## Install
 
-Simply type `pip install deep_gesture`.
+Soon, you'll simply be able to type `pip install deep_gesture`.
 
 To install from source, you may type
 
@@ -34,23 +44,27 @@ For more information type
 
     [pipenv run] deep_gesture -h
 
-Run deep<sub>gesture</sub> in training mode (use webcam for data collection):
+Run `deep_gesture` in collection mode (use webcam for data collection):
 
-    [pipenv run] deep_gesture --train --device 0
+    [pipenv run] deep_gesture --collect --device 0 --gestures hello --sequences 20 --length 30
+
+Run `deep_gesture` to train a model on collected data:
+
+    [pipenv run] deep_gesture --train --optimizer Adam --lr 0.0001 --epochs 1000 --batch-size 16
 
 Run deep<sub>gesture</sub> in streaming mode (use webcam for real-time gesture recognition):
 
     [pipenv run] deep_gesture --device 0
 
-Run deep<sub>gesture</sub> in file mode (use video file to categorize a gesture):
+(Not yet implemented) Run `deep_gesture` in file mode (use video file to categorize a gesture):
 
     [pipenv run] deep_gesture --file example.mp4
 
-Run deep<sub>gesture</sub> in test-mode:
+(Not yet implemented) Run `deep_gesture` in test-mode:
 
     [pipenv run] deep_gesture -t
 
-or with `pytest`:
+(not yet implemented) or with `pytest`:
 
     [pipenv run] pytest -v --cov=deep_gesture --cov-report=html
 

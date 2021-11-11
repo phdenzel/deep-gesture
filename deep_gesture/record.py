@@ -61,12 +61,12 @@ def collect_training_data():
                           kwargs={'pause': 3})
     cvstream.register_mod(holistic.save_landmarks, feed_passthru=True,
                           kwargs={'save_dir': dg.TMP_DIR})
-    cvstream.register_mod(cvstream.write_frame, feed_passthru=True)
-    cvstream.register_mod(cvstream.await_response, feed_passthru=False)
     cvstream.register_mod(cvstream.key_action, feed_passthru=True,
                           kwargs={'key_action_map': {'q': cvstream.close,
                                                      'd': dg.utils.clean_dir,
+                                                     's': cvstream.write_frame,
                                                      '*': dg.utils.archive_data}})
+    cvstream.register_mod(cvstream.await_response, feed_passthru=False)
 
     cvstream.start_iter(indices=training_sequences(gestures, N_sequences, length))
     cvstream.close()
