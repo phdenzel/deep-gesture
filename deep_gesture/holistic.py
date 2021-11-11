@@ -110,10 +110,12 @@ class HolisticMP(object):
                                      flattened data array
         """
         if self.results is None:
-            face_landmarks = np.zeros(self.N_face)
-            pose_landmarks = np.zeros(self.N_pose)
-            left_hand_landmarks = np.zeros(self.N_hand)
-            right_hand_landmarks = np.zeros(self.N_hand)
+            face_landmarks = np.zeros(self.N_face*3)
+            pose_landmarks = np.zeros(self.N_pose*4)
+            left_hand_landmarks = np.zeros(self.N_hand*3)
+            right_hand_landmarks = np.zeros(self.N_hand*3)
+            return np.concatenate([face_landmarks, pose_landmarks,
+                                   left_hand_landmarks, right_hand_landmarks])
         # Face landmarks
         if self.results.face_landmarks:
             face_landmarks = np.array(

@@ -226,17 +226,111 @@ class CVFeed(object):
 
         Kwargs:
             text <str|callable> - text to write on image
-            position <tuple> - relative position on the image
+            position <tuple> - relative position on the image (y/h, x/w)
             fontsize <int> - fontsize of the text
             color <tuple(int)> - RGB values between 0-255
             thickness <int> - thickness of the text
         """
         if callable(text):
             text = text(*args)
-        x, y, _ = frame.shape
-        position = (int(x*position[0]), int(y*position[1]))
+        y, x, _ = frame.shape
+        position = (int(y*position[1]), int(x*position[0]))
         cv2.putText(frame, text, position, cv2.FONT_HERSHEY_SIMPLEX,
                     fontsize, color, thickness, cv2.LINE_AA)
+
+    @staticmethod
+    def bar_to_image(frame, start_point, end_point, color, *args, fill=True):
+        """
+        Put a colored bar on the image feed
+
+        Args:
+            frame <np.ndarray> - RGB image
+            start_point <tuple> - starting point of the rectangle
+            end_point <tuple> - end point of the rectangle
+            color <tuple(int)> - RGB values between 0-255
+            args <*tuple>
+
+        Kwargs:
+            fill <bool> - fill the rectangle with the given color
+        """
+        fill_bar = -1 if fill else 1
+        y, x, _ = frame.shape
+        start_point = (int(y*start_point[0]), int(x*start_point[1]))
+        end_point = (int(y*end_point[0]), int(x*end_point[1]))
+        cv2.rectangle(frame, start_point, end_point, color, fill_bar)
+
+    @staticmethod
+    def generate_colors(N_colors, start=-10, end=260, s=0.6, v=0.8):
+        """
+        Generate linearly spaced colors in RGB
+        """
+        colors = []
+        start = start % 360
+        end = end % 360
+        if start > end:
+            end += 360
+        h_angles = np.linspace(start, end, N_colors).astype(int)
+        for h in h_angles:
+            rgb = CVFeed.hsv_to_rgb(h%360, s, v)
+            colors.append(rgb)
+        return colors
+        
+
+    @staticmethod
+    def rgb_to_hsv(r, g, b):
+        """
+        Convert an RGB color into HSV
+        """
+        rgb = np.asarray([r, g, b])
+        rgb /= 255
+        cmax = np.max(rgb)
+        cmin = np.min(rgb)
+        delta = cmax - cmin
+        r, g, b = rgb
+        if cmax == 0 and cmin == 0:
+            h = 0
+        elif cmax == rgb[0]:
+            h = (60 * ((g - b) / delta) + 360) % 360
+        elif cmax == rgb[1]:
+            h = (60 * ((b - r) / delta) + 120) % 360
+        elif cmax == rgb[2]:
+            h = (60 * ((r - g) / delta) + 240) % 360
+        if cmax == 0:
+            s = 0
+        else:
+            s = delta/cmax
+        v = cmax
+        return (h, s, v)
+
+    @staticmethod
+    def hsv_to_rgb(h, s, v):
+        """
+        Convert an HSV color into HSV
+        """
+        h /= 360.
+        if s == 0:
+            v *= 255
+            return np.array([v, v, v]).astype(int)
+        i = int(h*6)
+        f = (h*6) - i
+        p = int(255*(v*(1.-s)))
+        q = int(255*(v*(1.-s*f)))
+        t = int(255*(v*(1.-s*(1.-f))))
+        v *= 255
+        i %= 6
+        if i == 0:
+            return (v, t, p)
+        if i == 1:
+            return (q, v, p)
+        if i == 2:
+            return (p, v, t)
+        if i == 3:
+            return (p, q, v)
+        if i == 4:
+            return (t, p, v)
+        if i == 5:
+            return (v, p, q)
+        
 
     def single_capture(self, actions=True, ignore_signal=True):
         """

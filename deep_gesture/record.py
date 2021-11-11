@@ -3,8 +3,6 @@ deep_gesture.record
 
 @author: phdenzel
 """
-import os
-import cv2
 import deep_gesture as dg
 
 __all__ = ['collect_training_data']

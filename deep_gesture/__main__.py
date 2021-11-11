@@ -18,13 +18,15 @@ def arg_parse():
                    default=deep_gesture.device_id,
                    help="Integer ID of the video capture device (commonly 0, 1, or 2 etc.)."
                    )
-    p.add_argument("-f", "--file",
-                   dest="video_file", metavar="<filename>", type=str,
-                   help="Pathname of the pre-recorded gesture video file; triggers file mode."
-                   )
-    p.add_argument("-t", "--train", "--train-mode",
-                   dest="train_mode", action="store_true", default=False,
-                   help="Run deep_gesture in train mode."
+    # p.add_argument("-f", "--file",
+    #                dest="video_file", metavar="<filename>", type=str,
+    #                help="Pathname of the pre-recorded gesture video file; triggers file mode."
+    #                )
+
+    # Data collection flags
+    p.add_argument("-c", "--collect", "--collect-mode",
+                   dest="collect_mode", action="store_true", default=False,
+                   help="Run deep_gesture in collect mode."
                    )
     p.add_argument("--gestures",
                    dest="gestures", metavar="<gesture1>", nargs='+',
@@ -40,6 +42,34 @@ def arg_parse():
                    default=deep_gesture.sequence_length,
                    help="Set number of training sequences. Takes effect in train mode."
                    )
+
+    # Model training flags
+    p.add_argument("-t", "--train", "--train-mode",
+                   dest="train_mode", action="store_true", default=False,
+                   help="Run deep_gesture in train mode."
+                   )
+    p.add_argument("--optimizer",
+                   dest="optimizer", metavar="<optimizer>", type=str,
+                   default=deep_gesture.optimizer,
+                   help="Optimizer function classname for Tensorflow model"
+                   )
+    p.add_argument("--lr", "--learning-rate",
+                   dest="learning_rate", metavar="<rate>", type=float,
+                   default=deep_gesture.learning_rate,
+                   help="Learning rate for Tensorflow optimization"
+                   )
+    p.add_argument("--epochs",
+                   dest="epochs", metavar="<epochs>", type=int,
+                   default=deep_gesture.epochs,
+                   help="Number of epochs for model fitting"
+                   )
+    p.add_argument("--bs", "--batch-size",
+                   dest="batch_size", metavar="<size>", type=int,
+                   default=deep_gesture.batch_size,
+                   help="Batch size for model fitting"
+                   )
+
+    
     p.add_argument("--test", "--test-mode", dest="test_mode", action="store_true",
                    help="Run program in testing mode.", default=False
                    )
@@ -60,6 +90,11 @@ def overwrite_dg_vars(args):
     deep_gesture.sequence_length = args.sequence_length
     deep_gesture.gestures = args.gestures
 
+    deep_gesture.optimizer = args.optimizer
+    deep_gesture.learning_rate = args.learning_rate
+    deep_gesture.epochs = args.epochs
+    deep_gesture.batch_size = args.batch_size
+
 
 def main():
 
@@ -70,13 +105,15 @@ def main():
     if args.test_mode:
         from test import main
     # run in train mode
-    elif args.train_mode:
+    elif args.collect_mode:
         from deep_gesture.record import collect_training_data as main
-    # run in file mode
-    elif args.video_file:
-        from deep_gesture.process import video as main
-    # run in streaming mode
+    elif args.train_mode:
+        from deep_gesture.models import lstm3_conn as main
+    # # run in file mode
+    # elif args.video_file:
+    #     from deep_gesture.process import proc_file as main
+    # run in processing mode
     else:
-        from deep_gesture.process import stream as main
+        from deep_gesture.process import proc_feed as main
 
     main()
